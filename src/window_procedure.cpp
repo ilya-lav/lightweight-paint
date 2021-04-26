@@ -19,7 +19,7 @@ void InitializeMenu( HWND hWindow )
 
    AppendMenu( menu,
                MF_STRING | MF_POPUP,
-               reinterpret_cast<UINT>(popUpThicknessMenu),
+               reinterpret_cast<UINT>( popUpThicknessMenu ),
                MenuData::thicknessSelectionButton.m_name.data() );
 
    for( auto item : MenuData::thicknessItems )
@@ -60,6 +60,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
    static ToolManager toolManager{ hWindow };
  
    static int currentWidth{ }, currentHeight{ };
+   static bool resized = false;
    HDC hdc{ };
    PAINTSTRUCT paintStruct{ };
 
@@ -73,6 +74,22 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       }
       case WM_COMMAND:
       {
+         for( auto item : MenuData::thicknessItems )
+         {
+            if( item.m_id == LOWORD( wParam ) )
+            {
+               drawingManager.setThickness( item.m_value );
+            }
+         }
+
+         for( auto item : MenuData::toolItems )
+         {
+            if( item.m_id == LOWORD( wParam ) )
+            {
+               drawingManager.setDrawingTool( static_cast<EDrawingTool>( item.m_value ) );
+            }
+         }
+
          switch( LOWORD( wParam ) )
          {
             case MenuData::saveButton.m_id:
@@ -90,61 +107,6 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
                                           GetDC(hWindow) );
 
                MessageBox( hWindow, saveManager.getPath().data(), L"Saved to:", 0 );
-               break;
-            }
-            case MenuData::thicknessItems[0].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[0].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[1].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[1].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[2].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[2].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[3].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[3].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[4].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[4].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[5].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[5].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[6].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[6].m_value );
-               break;
-            }
-            case MenuData::thicknessItems[7].m_id:
-            {
-               drawingManager.setThickness( MenuData::thicknessItems[7].m_value );
-               break;
-            }
-            case MenuData::toolItems[0].m_id:
-            {
-               drawingManager.setDrawingTool( static_cast<EDrawingTool>( MenuData::toolItems[0].m_value ) );
-               break;
-            }
-            case MenuData::toolItems[1].m_id:
-            {
-               drawingManager.setDrawingTool( static_cast<EDrawingTool>(MenuData::toolItems[1].m_value) );
-               break;
-            }
-            case MenuData::toolItems[2].m_id:
-            {
-               drawingManager.setDrawingTool( static_cast<EDrawingTool>(MenuData::toolItems[2].m_value) );
                break;
             }
             case MenuData::colorSelectionButton.m_id:
@@ -179,7 +141,17 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       case WM_PAINT:
       {
          hdc = BeginPaint( hWindow, &paintStruct );
-         drawingManager.DrawAll( hdc );
+         
+         if( resized )
+         {
+            drawingManager.drawAll( hdc );
+            resized = false;
+         }
+         else
+         {
+            drawingManager.drawNew( hdc );
+         }
+
          EndPaint( hWindow, &paintStruct );
          break;
       }
@@ -187,6 +159,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       {
          currentWidth = LOWORD( lParam );
          currentHeight = HIWORD( lParam );
+         resized = true;
          break;
       }
       case WM_DESTROY:

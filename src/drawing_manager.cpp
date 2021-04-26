@@ -4,8 +4,8 @@
 DrawingManager::DrawingManager() :
    m_drawnObjects{ },
    m_mouseState{ EMouseState::eMS_Up },
-   m_currentCoordinates{ },
-   m_previousCoordinates{ },
+   m_currentPoint{ },
+   m_previousPoint{ },
    m_drawingTool{ EDrawingTool::eDT_Pencil },
    m_color{ RGB( 0, 0, 0 ) },
    m_thickness{ 1 },
@@ -23,20 +23,20 @@ EMouseState DrawingManager::getMouseState() const
    return m_mouseState;
 }
 
-void DrawingManager::setCurrentCoordinates( DrawingObject::Point newCoordinates )
+void DrawingManager::setCurrentPoint( Point newPoint )
 {
-   m_previousCoordinates = m_currentCoordinates;
-   m_currentCoordinates = newCoordinates;
+   m_previousPoint = m_currentPoint;
+   m_currentPoint = newPoint;
 }
 
-DrawingObject::Point DrawingManager::getCurrentCoordinates() const
+DrawingObject::Point DrawingManager::getCurrentPoint() const
 {
-   return m_currentCoordinates;
+   return m_currentPoint;
 }
 
-DrawingObject::Point DrawingManager::getPreviousCoordinates() const
+DrawingObject::Point DrawingManager::getPreviousPoint() const
 {
-   return m_previousCoordinates;
+   return m_previousPoint;
 }
 
 void DrawingManager::setDrawingTool( EDrawingTool newDrawingMode )
@@ -63,33 +63,7 @@ void DrawingManager::setThickness( int newThickness )
    m_pen = CreatePen( PS_SOLID, m_thickness, m_color );
 }
 
-void DrawingManager::handleLeftButtonUp( DrawingObject::Point point )
-{
-   setMouseState( EMouseState::eMS_Up );
-
-   switch( m_drawingTool )
-   {
-      case EDrawingTool::eDT_Pencil:
-      {
-         
-         break;
-      }
-      case EDrawingTool::eDT_Line:
-      {
-         setCurrentCoordinates( point );
-         addDrawnObject();
-         break;
-      }
-      case EDrawingTool::eDT_Ellipse:
-      {
-         setCurrentCoordinates( point );
-         addDrawnObject();
-         break;
-      }
-   }
-}
-
-void DrawingManager::handleLeftButtonDown( DrawingObject::Point point )
+void DrawingManager::handleLeftButtonDown( Point point )
 {
    setMouseState( EMouseState::eMS_Down );
 
@@ -97,23 +71,23 @@ void DrawingManager::handleLeftButtonDown( DrawingObject::Point point )
    {
       case EDrawingTool::eDT_Pencil:
       {
-         setCurrentCoordinates( point );
+         setCurrentPoint( point );
          break;
       }
       case EDrawingTool::eDT_Line:
       {
-         setCurrentCoordinates( point );
+         setCurrentPoint( point );
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
-         setCurrentCoordinates( point );
+         setCurrentPoint( point );
          break;
       }
    }
 }
 
-void DrawingManager::handleMouseMove( DrawingObject::Point point, HDC hdc )
+void DrawingManager::handleMouseMove( Point point, HDC hdc )
 {
    switch( m_drawingTool )
    {
@@ -121,18 +95,47 @@ void DrawingManager::handleMouseMove( DrawingObject::Point point, HDC hdc )
       {
          if( m_mouseState == EMouseState::eMS_Down )
          {
-            setCurrentCoordinates( point );
+            setCurrentPoint( point );
             addDrawnObject();
          }
          break;
       }
       case EDrawingTool::eDT_Line:
       {
-         
+         if( m_mouseState == EMouseState::eMS_Down )
+         {
+            setCurrentPoint( point );
+         }
+
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
+         break;
+      }
+   }
+}
+
+void DrawingManager::handleLeftButtonUp( Point point )
+{
+   setMouseState( EMouseState::eMS_Up );
+
+   switch( m_drawingTool )
+   {
+      case EDrawingTool::eDT_Pencil:
+      {
+
+         break;
+      }
+      case EDrawingTool::eDT_Line:
+      {
+         addDrawnObject();
+         break;
+      }
+      case EDrawingTool::eDT_Ellipse:
+      {
+         setCurrentPoint( point );
+         addDrawnObject();
          break;
       }
    }
@@ -145,22 +148,22 @@ void DrawingManager::addDrawnObject()
       case EDrawingTool::eDT_Pencil:
       {
          m_drawnObjects.push_back( std::make_shared<Line>( Line{ m_pen,
-                                                                 m_previousCoordinates,
-                                                                 m_currentCoordinates} ) );
+                                                                 m_previousPoint,
+                                                                 m_currentPoint} ) );
          break;
       }
       case EDrawingTool::eDT_Line:
       {
          m_drawnObjects.push_back( std::make_shared<Line>( Line{ m_pen,
-                                                                 m_previousCoordinates,
-                                                                 m_currentCoordinates } ) );
+                                                                 m_previousPoint,
+                                                                 m_currentPoint } ) );
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
          m_drawnObjects.push_back( std::make_shared<EllipseDO>( EllipseDO{ m_pen,
-                                                                           m_previousCoordinates,
-                                                                           m_currentCoordinates } ) );
+                                                                           m_previousPoint,
+                                                                           m_currentPoint } ) );
          break;
       }
    }
@@ -174,11 +177,19 @@ void DrawingManager::removeLastObject()
    }
 }
 
-void DrawingManager::DrawAll( HDC hdc )
+void DrawingManager::drawAll( HDC hdc )
 {
    for( auto item : m_drawnObjects )
    {
       item->draw( hdc );
+   }
+}
+
+void DrawingManager::drawNew( HDC hdc )
+{
+   if( !m_drawnObjects.empty() )
+   {
+      m_drawnObjects[m_drawnObjects.size() - 1]->draw( hdc );
    }
 }
 

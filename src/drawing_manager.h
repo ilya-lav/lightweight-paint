@@ -30,6 +30,8 @@ class DrawingManager final
 {
 public:
 
+   using Point = DrawingObject::Point;
+
    explicit DrawingManager();
 
    DrawingManager( DrawingManager& ) = delete;
@@ -45,10 +47,10 @@ public:
    void setMouseState( EMouseState newState );
    EMouseState getMouseState() const;
 
-   void setCurrentCoordinates( DrawingObject::Point newCoordinates );
-   DrawingObject::Point getCurrentCoordinates() const;
+   void setCurrentPoint( Point newPoint );
+   Point getCurrentPoint() const;
 
-   DrawingObject::Point getPreviousCoordinates() const;
+   Point getPreviousPoint() const;
 
    void setDrawingTool( EDrawingTool newDrawingMode );
    EDrawingTool getDrawingTool() const;
@@ -56,13 +58,14 @@ public:
    void setColor( COLORREF newColor );
    void setThickness( int newThickness );
 
-   void handleLeftButtonUp( DrawingObject::Point point );
-   void handleLeftButtonDown( DrawingObject::Point point );
-   void handleMouseMove( DrawingObject::Point point, HDC hdc );
+   void handleLeftButtonUp( Point point );
+   void handleLeftButtonDown( Point point );
+   void handleMouseMove( Point point, HDC hdc );
 
    void addDrawnObject();
    void removeLastObject();
-   void DrawAll( HDC hdc );
+   void drawAll( HDC hdc );
+   void drawNew( HDC hdc );
 
    void drawPreviewLine();
 
@@ -71,8 +74,8 @@ private:
    std::vector<std::shared_ptr<DrawingObject>> m_drawnObjects;
 
    EMouseState m_mouseState;
-   DrawingObject::Point m_currentCoordinates;
-   DrawingObject::Point m_previousCoordinates;
+   DrawingObject::Point m_currentPoint;
+   DrawingObject::Point m_previousPoint;
 
    EDrawingTool m_drawingTool;
 

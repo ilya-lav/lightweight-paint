@@ -28,7 +28,7 @@ int CALLBACK wWinMain( HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmd
       return EXIT_FAILURE;
 
    hWindow = CreateWindow( windowClass.lpszClassName,
-                           L"Title",
+                           L"Lightweigt Paint",
                            WS_OVERLAPPEDWINDOW,
                            0,
                            0,
