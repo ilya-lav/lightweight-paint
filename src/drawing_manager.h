@@ -56,7 +56,7 @@ public:
 
    void handleLeftButtonUp( Point point );
    void handleLeftButtonDown( Point point );
-   void handleMouseMove( Point point, HDC hdc );
+   void handleMouseMove( Point point );
 
 
    void addDrawnObject( Point firstPoint, Point secondPoint );

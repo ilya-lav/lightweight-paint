@@ -72,7 +72,7 @@ void DrawingManager::handleLeftButtonDown( Point point )
    }
 }
 
-void DrawingManager::handleMouseMove( Point point, HDC hdc )
+void DrawingManager::handleMouseMove( Point point )
 {
    switch( m_drawingTool )
    {

@@ -61,8 +61,9 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
  
    static int currentWidth{ }, currentHeight{ };
    HDC hdc{ };
+   HDC memDC{ };
    PAINTSTRUCT paintStruct{ };
-
+   
 
    switch( message )
    {
@@ -129,7 +130,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       }
       case WM_MOUSEMOVE:
       {
-         drawingManager.handleMouseMove( {LOWORD( lParam ), HIWORD( lParam )}, hdc );
+         drawingManager.handleMouseMove( {LOWORD( lParam ), HIWORD( lParam )} );
          
          if( drawingManager.getMouseState() == EMouseState::eMS_Down )
          {
@@ -141,12 +142,29 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       case WM_PAINT:
       {
          hdc = BeginPaint( hWindow, &paintStruct );
-         
-         drawingManager.drawAll( hdc );
-         drawingManager.drawPreview( hdc );
+         memDC = CreateCompatibleDC( hdc );
+         HBITMAP hBitmap = CreateCompatibleBitmap( hdc, currentWidth, currentHeight );
+         SelectObject( memDC, hBitmap );
 
+         RECT rectangle;
+         SetRect( &rectangle, 0, 0, currentWidth, currentHeight );
+         FillRect( memDC, &rectangle, reinterpret_cast<HBRUSH>( GetStockObject( WHITE_BRUSH ) ) );
+
+
+         drawingManager.drawAll( memDC );
+         drawingManager.drawPreview( memDC );
+
+
+         BitBlt( hdc, 0, 0, currentWidth, currentHeight, memDC, 0, 0, SRCCOPY );
+
+         DeleteObject( hBitmap );
+         DeleteDC( memDC );
          EndPaint( hWindow, &paintStruct );
          break;
+      }
+      case WM_ERASEBKGND:
+      {
+         return TRUE;
       }
       case WM_SIZE:
       {

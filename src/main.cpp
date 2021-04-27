@@ -56,6 +56,7 @@ int CALLBACK wWinMain( HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmd
       TranslateMessage( &message );
       DispatchMessage( &message );
    }
+
    Gdiplus::GdiplusShutdown( gdiplusToken );
    return static_cast<int>( message.wParam );
 }
