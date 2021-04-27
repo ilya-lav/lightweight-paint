@@ -36,6 +36,11 @@ bool SaveManager::screenCapture( int x, int y, int width, int height, const std:
    HBITMAP hBitmap = (HBITMAP)SelectObject( memdc, membit );
    Gdiplus::Bitmap bitmap( hBitmap, NULL );
 
+   if( path.empty() )
+   {
+      return false;
+   }
+
    bitmap.Save( adjustPath( path ).data(), &guid );
    DeleteObject( hBitmap );
 

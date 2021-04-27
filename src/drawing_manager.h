@@ -47,35 +47,33 @@ public:
    void setMouseState( EMouseState newState );
    EMouseState getMouseState() const;
 
-   void setCurrentPoint( Point newPoint );
-   Point getCurrentPoint() const;
-
-   Point getPreviousPoint() const;
-
    void setDrawingTool( EDrawingTool newDrawingMode );
    EDrawingTool getDrawingTool() const;
    
    void setColor( COLORREF newColor );
    void setThickness( int newThickness );
 
+
    void handleLeftButtonUp( Point point );
    void handleLeftButtonDown( Point point );
    void handleMouseMove( Point point, HDC hdc );
 
-   void addDrawnObject();
-   void removeLastObject();
+
+   void addDrawnObject( Point firstPoint, Point secondPoint );
+   void addPreviewObject( Point firstPoint, Point secondPoint );
+
    void drawAll( HDC hdc );
    void drawNew( HDC hdc );
-
-   void drawPreviewLine();
+   void drawPreview( HDC hdc );
 
 private:
 
+   std::shared_ptr<DrawingObject> m_previewObject;
    std::vector<std::shared_ptr<DrawingObject>> m_drawnObjects;
 
    EMouseState m_mouseState;
-   DrawingObject::Point m_currentPoint;
-   DrawingObject::Point m_previousPoint;
+   DrawingObject::Point m_firstPoint;
+   DrawingObject::Point m_secondPoint;
 
    EDrawingTool m_drawingTool;
 

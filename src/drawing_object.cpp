@@ -4,5 +4,4 @@ DrawingObject::DrawingObject( HPEN pen, DrawingObject::Point first, DrawingObjec
    m_pen{ pen },
    m_coordinates{ first, second }
 {
-
 }

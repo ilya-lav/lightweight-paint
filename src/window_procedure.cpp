@@ -60,7 +60,6 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
    static ToolManager toolManager{ hWindow };
  
    static int currentWidth{ }, currentHeight{ };
-   static bool resized = false;
    HDC hdc{ };
    PAINTSTRUCT paintStruct{ };
 
@@ -125,6 +124,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       case WM_LBUTTONUP: 
       {
          drawingManager.handleLeftButtonUp( {LOWORD( lParam ), HIWORD( lParam )} );
+         InvalidateRect( hWindow, NULL, TRUE );
          break;
       }
       case WM_MOUSEMOVE:
@@ -133,7 +133,7 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
          
          if( drawingManager.getMouseState() == EMouseState::eMS_Down )
          {
-            InvalidateRect( hWindow, NULL, FALSE );
+            InvalidateRect( hWindow, NULL, TRUE );
          }
 
          break;
@@ -142,15 +142,8 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       {
          hdc = BeginPaint( hWindow, &paintStruct );
          
-         if( resized )
-         {
-            drawingManager.drawAll( hdc );
-            resized = false;
-         }
-         else
-         {
-            drawingManager.drawNew( hdc );
-         }
+         drawingManager.drawAll( hdc );
+         drawingManager.drawPreview( hdc );
 
          EndPaint( hWindow, &paintStruct );
          break;
@@ -159,7 +152,6 @@ LRESULT CALLBACK MainWindowProcedure( HWND hWindow, UINT message, WPARAM wParam,
       {
          currentWidth = LOWORD( lParam );
          currentHeight = HIWORD( lParam );
-         resized = true;
          break;
       }
       case WM_DESTROY:

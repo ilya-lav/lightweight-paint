@@ -2,10 +2,11 @@
 
 
 DrawingManager::DrawingManager() :
+   m_previewObject{ },
    m_drawnObjects{ },
    m_mouseState{ EMouseState::eMS_Up },
-   m_currentPoint{ },
-   m_previousPoint{ },
+   m_firstPoint{ },
+   m_secondPoint{ },
    m_drawingTool{ EDrawingTool::eDT_Pencil },
    m_color{ RGB( 0, 0, 0 ) },
    m_thickness{ 1 },
@@ -21,22 +22,6 @@ void DrawingManager::setMouseState( EMouseState newState )
 EMouseState DrawingManager::getMouseState() const
 {
    return m_mouseState;
-}
-
-void DrawingManager::setCurrentPoint( Point newPoint )
-{
-   m_previousPoint = m_currentPoint;
-   m_currentPoint = newPoint;
-}
-
-DrawingObject::Point DrawingManager::getCurrentPoint() const
-{
-   return m_currentPoint;
-}
-
-DrawingObject::Point DrawingManager::getPreviousPoint() const
-{
-   return m_previousPoint;
 }
 
 void DrawingManager::setDrawingTool( EDrawingTool newDrawingMode )
@@ -71,17 +56,17 @@ void DrawingManager::handleLeftButtonDown( Point point )
    {
       case EDrawingTool::eDT_Pencil:
       {
-         setCurrentPoint( point );
+         m_firstPoint = point;
          break;
       }
       case EDrawingTool::eDT_Line:
       {
-         setCurrentPoint( point );
+         m_firstPoint = point;
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
-         setCurrentPoint( point );
+         m_firstPoint = point;
          break;
       }
    }
@@ -95,8 +80,9 @@ void DrawingManager::handleMouseMove( Point point, HDC hdc )
       {
          if( m_mouseState == EMouseState::eMS_Down )
          {
-            setCurrentPoint( point );
-            addDrawnObject();
+            m_secondPoint = m_firstPoint;
+            m_firstPoint = point;
+            addDrawnObject( m_firstPoint, m_secondPoint );
          }
          break;
       }
@@ -104,13 +90,18 @@ void DrawingManager::handleMouseMove( Point point, HDC hdc )
       {
          if( m_mouseState == EMouseState::eMS_Down )
          {
-            setCurrentPoint( point );
+            m_secondPoint = point;
+            addPreviewObject( m_firstPoint, m_secondPoint );
          }
-
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
+         if( m_mouseState == EMouseState::eMS_Down )
+         {
+            m_secondPoint = point;
+            addPreviewObject( m_firstPoint, m_secondPoint );
+         }
          break;
       }
    }
@@ -124,56 +115,74 @@ void DrawingManager::handleLeftButtonUp( Point point )
    {
       case EDrawingTool::eDT_Pencil:
       {
-
          break;
       }
       case EDrawingTool::eDT_Line:
       {
-         addDrawnObject();
+         addDrawnObject( m_firstPoint, m_secondPoint );
+         m_secondPoint = { };
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
-         setCurrentPoint( point );
-         addDrawnObject();
+         addDrawnObject( m_firstPoint, m_secondPoint );
+         m_secondPoint = { };
          break;
       }
    }
 }
 
-void DrawingManager::addDrawnObject()
+void DrawingManager::addDrawnObject( Point firstPoint, Point secondPoint )
 {
+   if( firstPoint == Point{} || secondPoint == Point{} )
+   {
+      return;
+   }
+
    switch( m_drawingTool )
    {
       case EDrawingTool::eDT_Pencil:
       {
          m_drawnObjects.push_back( std::make_shared<Line>( Line{ m_pen,
-                                                                 m_previousPoint,
-                                                                 m_currentPoint} ) );
+                                                                 firstPoint,
+                                                                 secondPoint } ) );
          break;
       }
       case EDrawingTool::eDT_Line:
       {
          m_drawnObjects.push_back( std::make_shared<Line>( Line{ m_pen,
-                                                                 m_previousPoint,
-                                                                 m_currentPoint } ) );
+                                                                 firstPoint,
+                                                                 secondPoint } ) );
          break;
       }
       case EDrawingTool::eDT_Ellipse:
       {
          m_drawnObjects.push_back( std::make_shared<EllipseDO>( EllipseDO{ m_pen,
-                                                                           m_previousPoint,
-                                                                           m_currentPoint } ) );
+                                                                           firstPoint,
+                                                                           secondPoint } ) );
          break;
       }
    }
 }
 
-void DrawingManager::removeLastObject()
+void DrawingManager::addPreviewObject( Point firstPoint, Point secondPoint )
 {
-   if( !m_drawnObjects.empty() )
+   switch( m_drawingTool )
    {
-      m_drawnObjects.pop_back();
+      case EDrawingTool::eDT_Line:
+      {
+         m_previewObject = std::make_shared<Line>( Line{ m_pen,
+                                                         firstPoint, 
+                                                         secondPoint } );
+         break;
+      }
+      case EDrawingTool::eDT_Ellipse:
+      {
+         m_previewObject = std::make_shared<EllipseDO>( EllipseDO{ m_pen,
+                                                                   firstPoint,
+                                                                   secondPoint }  );
+         break;
+      }
    }
 }
 
@@ -193,3 +202,10 @@ void DrawingManager::drawNew( HDC hdc )
    }
 }
 
+void DrawingManager::drawPreview( HDC hdc )
+{
+   if( m_previewObject != nullptr )
+   {
+      m_previewObject->draw( hdc );
+   }
+}
